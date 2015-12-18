@@ -118,5 +118,18 @@ barplot(height = ytdiff , names.arg= xtc,  ylab = "Steps", xlab="Dates",col = "r
 ```
 
 ## Difference in activity Patterns between weekdays and weekends.
+```{r}
+wd <- weekdays(as.Date(vvdateagg$date))
+wdaydata <- data.frame(vvdateagg, wd)
+weekdayagg <- aggregate(wdaydata$x, by=list(day=wdaydata$wd), FUN=mean)
+
+xtw <- weekdayagg$day
+ytw <- weekdayagg$x
+
+barplot(height = ytw , names.arg= xtw,  ylab = "Steps", xlab="Dates",col = "red")
+weekdayagg 
+```
 
 
+There is slightly more activity on weekends as compared to weekdays.
+ 
