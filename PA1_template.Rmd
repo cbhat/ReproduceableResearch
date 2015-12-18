@@ -1,0 +1,122 @@
+
+
+
+## Background
+
+
+## Mean Total Number of Steps taken per day
+
+```{r}
+activitydata <- read.csv("activity.csv", header=TRUE, sep=",")
+totalsteps <- sum(activitydata$steps,na.rm=TRUE)
+ndays <- length(unique(activitydata$date))
+```
+
+Everyday an average of `r round(totalsteps/ndays)` steps were taken.
+
+
+# Distribution of the total number of steps taken everyday.
+
+
+```{r}
+stepactivity <- activitydata[,c(1,2)]
+filterstepactivity <- na.omit(stepactivity)
+
+histagg <- aggregate(filterstepactivity$steps, by=list(date=filterstepactivity$date), FUN=sum)
+
+xt <- as.POSIXct(strptime(histagg$date, "%Y-%m-%d"))
+yt <- histagg$x
+barplot(height = yt , names.arg= xt,  ylab = "Steps", xlab="Dates",col = "red")
+```
+
+# Mean and median of the steps taken everyday.
+
+```{r}
+summary(histagg)
+```
+
+
+## What is the average daily activity pattern?
+
+```{r}
+stepintervalactivity <- na.omit(activitydata[,c(1,3)])
+timeagg <- aggregate(x=stepintervalactivity$steps, by=list(interval=stepintervalactivity$interval), FUN=mean)
+
+
+#> stepintervalactivity <- na.omit(activitydata[,c(1,3)])
+#> timeagg <- aggregate(stepintervalactivity$steps, by=list(interval=stepintervalactivity$interval), FUN=mean)
+
+convert_time = function(x) {
+
+y <- x %% 100
+q <-  x %/% 100
+
+return ( y + 60 *q )
+}
+
+xt <- convert_time(timeagg$interval)
+plot(timeagg$x ~ xt, type = "l", ylab = "Average no of steps", xlab = "Time of the day ( no of 5 minute intervals)")
+```
+
+```{r}
+head(timeagg[order(timeagg$x, decreasing = TRUE),])
+```
+
+The time interval around `r convert_time(835)`  minutes (  8:35 AM ) has the highest number of steps.
+
+##  Imputing missing values
+
+```{r}
+missingValues <-  nrow(activitydata) - nrow(na.omit(activitydata))
+```
+
+There are `r missingValues` missing values in the dataset.
+
+```{r}
+timeagg <- aggregate(stepintervalactivity$steps, by=list(interval=stepintervalactivity$interval), FUN=mean)
+
+replace_null = function(a,b ) {
+if ( is.na(a) ) return ( b )
+return ( a)
+}
+
+activity2 <- merge(activitydata, timeagg, by.x = "interval", by.y ="interval")
+
+
+
+#subvvxtsagg <- apply.daily(subvvxts, FUN=mean)
+#subvvxts <- xts(subvv[,-1], order.by=as.POSIXct(subvv$date))
+
+
+replace_null_with_mean = function(x, y) {
+     len <- nrow(x)
+	df = data.frame(steps = numeric(len))
+     for ( i in 1:len){
+	df$steps[i] <- round(replace_null( x[i,2], x[i,4]))
+     }
+     return ( df)
+}
+
+
+nn <- replace_null_with_mean(activity2, timeagg)
+
+vv <- data.frame(activity2[,c(1,3)], nn)
+
+vvdateagg <- aggregate(vv$steps, by=list(date=vv$date), FUN=sum)
+
+
+
+xtc <- as.POSIXct(strptime(vvdateagg$date, "%Y-%m-%d"))
+ytc <- vvdateagg$x
+barplot(height = ytc , names.arg= xtc,  ylab = "Steps", xlab="Dates",col = "red")
+
+summary(vvdateagg)
+
+ytdiff <- ytc - yt
+
+barplot(height = ytdiff , names.arg= xtc,  ylab = "Steps", xlab="Dates",col = "red")
+```
+
+## Difference in activity Patterns between weekdays and weekends.
+
+
