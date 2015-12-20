@@ -3,10 +3,20 @@
 
 ## Background
 
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The 
+data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the 
+number of steps taken in 5 minute intervals each day.
+The data has been analyzed to answer the following questions.
+
+ +  What is the mean of the total number of steps taken each day.
+ +  What is the average daily activity pattern
+ +   What is the impact of imputing missing values in the data
+ +  What is the difference in activity comparing weekdays and weekends.
+
 
 ## Mean Total Number of Steps taken per day
 
-```{r}
+```{r echo=FALSE}
 activitydata <- read.csv("activity.csv", header=TRUE, sep=",")
 totalsteps <- sum(activitydata$steps,na.rm=TRUE)
 ndays <- length(unique(activitydata$date))
@@ -18,7 +28,7 @@ Everyday an average of `r round(totalsteps/ndays)` steps were taken.
 # Distribution of the total number of steps taken everyday.
 
 
-```{r}
+```{r echo=FALSE}
 stepactivity <- activitydata[,c(1,2)]
 filterstepactivity <- na.omit(stepactivity)
 
@@ -26,19 +36,19 @@ histagg <- aggregate(filterstepactivity$steps, by=list(date=filterstepactivity$d
 
 xt <- as.POSIXct(strptime(histagg$date, "%Y-%m-%d"))
 yt <- histagg$x
-barplot(height = yt , names.arg= xt,  ylab = "Steps", xlab="Dates",col = "red")
+barplot(height = yt , names.arg= xt, main="Steps taken on any day",  ylab = "Steps", xlab="Dates",col = "red")
 ```
 
 # Mean and median of the steps taken everyday.
 
-```{r}
+```{r echo=FALSE}
 summary(histagg)
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r}
+```{r echo=FALSE}
 stepintervalactivity <- na.omit(activitydata[,c(1,3)])
 timeagg <- aggregate(x=stepintervalactivity$steps, by=list(interval=stepintervalactivity$interval), FUN=mean)
 
@@ -55,10 +65,10 @@ return ( y + 60 *q )
 }
 
 xt <- convert_time(timeagg$interval)
-plot(timeagg$x ~ xt, type = "l", ylab = "Average no of steps", xlab = "Time of the day ( no of 5 minute intervals)")
+plot(timeagg$x ~ xt, type = "l", main = "Average number of steps taken over a 5 minute interval in a day",ylab = "Average no of steps", xlab = "Time of the day ( no of 5 minute intervals)")
 ```
 
-```{r}
+```{r echo=FALSE}
 head(timeagg[order(timeagg$x, decreasing = TRUE),])
 ```
 
@@ -66,13 +76,13 @@ The time interval around `r convert_time(835)`  minutes (  8:35 AM ) has the hig
 
 ##  Imputing missing values
 
-```{r}
+```{r echo = FALSE}
 missingValues <-  nrow(activitydata) - nrow(na.omit(activitydata))
 ```
 
 There are `r missingValues` missing values in the dataset.
 
-```{r}
+```{r echo=FALSE}
 timeagg <- aggregate(stepintervalactivity$steps, by=list(interval=stepintervalactivity$interval), FUN=mean)
 
 replace_null = function(a,b ) {
@@ -108,17 +118,17 @@ vvdateagg <- aggregate(vv$steps, by=list(date=vv$date), FUN=sum)
 
 xtc <- as.POSIXct(strptime(vvdateagg$date, "%Y-%m-%d"))
 ytc <- vvdateagg$x
-barplot(height = ytc , names.arg= xtc,  ylab = "Steps", xlab="Dates",col = "red")
+barplot(height = ytc , names.arg= xtc,  main = "Average daily number of steps with inputed null values",ylab = "Steps", xlab="Dates",col = "red")
 
 summary(vvdateagg)
 
 ytdiff <- ytc - yt
 
-barplot(height = ytdiff , names.arg= xtc,  ylab = "Steps", xlab="Dates",col = "red")
+barplot(height = ytdiff , names.arg= xtc,  main = "Impact of imputed Values on the Number of steps per day",ylab = "Steps", xlab="Dates",col = "red")
 ```
 
 ## Difference in activity Patterns between weekdays and weekends.
-```{r}
+```{r echo=FALSE}
 wd <- weekdays(as.Date(vvdateagg$date))
 wdaydata <- data.frame(vvdateagg, wd)
 weekdayagg <- aggregate(wdaydata$x, by=list(day=wdaydata$wd), FUN=mean)
@@ -126,10 +136,13 @@ weekdayagg <- aggregate(wdaydata$x, by=list(day=wdaydata$wd), FUN=mean)
 xtw <- weekdayagg$day
 ytw <- weekdayagg$x
 
-barplot(height = ytw , names.arg= xtw,  ylab = "Steps", xlab="Dates",col = "red")
-weekdayagg 
+barplot(height = ytw , names.arg= xtw, main= "Average number of steps taken on any day of the week", ylab = "Steps", xlab="Dates",col = "red")
+weekdayagg
+mean_wday <- (sum(ytw) - ytw[3] - ytw[4])/5 
+mean_wend <- (ytw[3] + ytw[4])/2
 ```
 
 
-There is slightly more activity on weekends as compared to weekdays.
+ There is slightly more activity on weekends as compared to weekdays.
+ `r round(mean_wend - mean_wday)` additional steps were taken  on weekends.
  
